@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package pb;
+
+option go_package="grpc/pb";
+
+service Service {
+    rpc Post (PostRequest) returns (ServiceResponse) {
+    }
+}
+
+message PostRequest {
+    string key = 1;
+    string val = 2;
+}
+
+message ServiceResponse {
+    int64 code = 1;
+    string data = 2;
+    string message = 3;
+}
