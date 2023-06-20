@@ -6,6 +6,7 @@ import (
 	ep "kitprc/endpoint"
 	"kitprc/repository"
 	"kitprc/service"
+	"kitprc/tool"
 	"kitprc/transport/grpc"
 	"kitprc/transport/grpc/pb"
 	"kitprc/transport/http"
@@ -83,17 +84,15 @@ func initHttpHandler(endpoints ep.Endpoints, g *group.Group) {
 	}
 
 	httpHandler := http.MakeHTTPHandler(endpoints, opts...)
-	httpListener, err := net.Listen("tcp", *httpAddr)
-	if err != nil {
-		_ = level.Error(logger).Log("transport", "HTTP", "during", "Listen", "err", err)
-	}
-	g.Add(func() error {
-		_ = level.Error(logger).Log("transport", "HTTP", "addr", *httpAddr)
-		return netHttp.Serve(httpListener, httpHandler)
-	}, func(error) {
-		_ = level.Error(logger).Log("httpListener.Close", httpListener.Close())
-	})
 
+	// 注册
+	go func() {
+		err := tool.RegService("127.0.0.1:8500", "1", "测试1", "127.0.0.1", 8000, "5s", "http://172.16.8.232:8000/health", "test")
+		if err != nil {
+			_ = level.Error(logger).Log("transport", "HTTP", "during", "Reg", "err", err)
+		}
+		_ = netHttp.ListenAndServe("0.0.0.0:8000", httpHandler)
+	}()
 }
 
 func initGRPCHandler(endpoints ep.Endpoints, g *group.Group) {
